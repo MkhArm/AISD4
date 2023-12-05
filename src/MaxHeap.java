@@ -131,5 +131,89 @@ public class MaxHeap<E extends Comparable<E>> implements Heap<E> {
 
         return 1 + Math.max(leftHeight, rightHeight);
     }
+
+    @Override
+    public E poll() {
+        if (size == 0) {
+            return null; // Куча пуста
+        }
+
+        E maxElement = root.getKey();
+        BinaryTree<E> lastNode = getLastNode(size);
+
+        if (size == 1) {
+            root = null;
+        } else {
+            // Поменяем местами максимальный элемент с последним элементом
+            swapValues(root, lastNode);
+
+            // Удаление последнего элемента
+            BinaryTree<E> parent = (BinaryTree<E>) lastNode.getParent();
+            if (parent.getLeft() == lastNode) {
+                parent.setLeft(null);
+            } else {
+                parent.setRight(null);
+            }
+
+            // Выполняем heapifyDown для восстановления свойства кучи
+            heapifyDown(root);
+        }
+
+        size--;
+        return maxElement;
+    }
+
+    private BinaryTree<E> findNodeWithValue(BinaryTree<E> node, E value) {
+        if (node == null) {
+            return null;
+        }
+
+        if (node.getKey() != null && node.getKey().equals(value)) {
+            return node;
+        }
+
+        // Рекурсивный поиск в левом и правом поддеревьях
+        BinaryTree<E> leftResult = findNodeWithValue((BinaryTree<E>) node.getLeft(), value);
+        BinaryTree<E> rightResult = findNodeWithValue((BinaryTree<E>) node.getRight(), value);
+
+        return leftResult != null ? leftResult : rightResult;
+    }
+
+
+    private void heapifyDown(BinaryTree<E> node) {
+        while (node != null) {
+            BinaryTree<E> maxChild = findMaxChild(node);
+
+            // Если максимальный ребенок больше текущего узла, меняем их местами
+            if (maxChild != null && node.getKey() != null && maxChild.getKey() != null && maxChild.getKey().compareTo(node.getKey()) > 0) {
+                swapValues(node, maxChild);
+                node = maxChild;
+            } else {
+                break;
+            }
+        }
+    }
+
+    private BinaryTree<E> findMaxChild(BinaryTree<E> node) {
+        BinaryTree<E> leftChild = (BinaryTree<E>) node.getLeft();
+        BinaryTree<E> rightChild = (BinaryTree<E>) node.getRight();
+
+        if (leftChild == null && rightChild == null) {
+            return null; // Нет дочерних узлов
+        } else if (rightChild == null || leftChild.getKey().compareTo(rightChild.getKey()) > 0) {
+            return leftChild; // Левый ребенок больше правого
+        } else {
+            return rightChild; // Правый ребенок больше или равен левому
+        }
+    }
+
+    public boolean contains(E value) {
+        return findNodeWithValue(root, value) != null;
+    }
+
+    public boolean isEmpty() {
+        return root == null;
+    }
+
 }
 
